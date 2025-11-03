@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disruptive English Contractions Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.323.0/css/lucide.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d111b; /* Darker background */
+        }
+        .shake-animation {
+          animation: shake 0.3s ease-in-out;
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0) scale(1.05); }
+          20%, 60% { transform: translateX(-5px) scale(1.05); }
+          40%, 80% { transform: translateX(5px) scale(1.05); }
+        }
+        .lego-bg {
+          /* Subtle diagonal pattern for the main card */
+          background-image: linear-gradient(135deg, #1f2937 25%, #111827 25%, #111827 50%, #1f2937 50%, #1f2937 75%, #111827 75%, #111827 100%);
+          background-size: 50px 50px;
+        }
+        .block-card {
+            min-width: 80px;
+            min-height: 80px;
+        }
+        .hover\:scale-105:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 md:p-8 text-white">
+
+    <header class="w-full max-w-2xl text-center mb-10">
+        <h1 class="text-4xl md:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600 flex items-center justify-center">
+            <i data-lucide="sparkles" class="w-8 h-8 mr-2"></i>
+            Disruptive English Contractions Builder
+        </h1>
+        <p class="mt-2 text-gray-300 text-lg">
+            Combine the 'Lego Blocks' to form the correct contractions. Now featuring **40** complex sets!
+        </p>
+    </header>
+
+    <!-- SCORE AND PROGRESS TRACKER -->
+    <section id="progress-tracker" class="w-full max-w-2xl mb-6 p-4 bg-gray-800 rounded-xl shadow-lg border border-gray-700"></section>
+
+    <main class="w-full max-w-2xl bg-gray-800 p-6 md:p-8 rounded-3xl shadow-2xl border border-gray-700 lego-bg">
+        
+        <section class="text-center mb-6">
+          <p id="hint-display" class="text-xl text-gray-400 mb-4">
+            <!-- Hint will be rendered here -->
+          </p>
+        </section>
+
+        <!-- LEGO BLOCK AREA -->
+        <section class="bg-gray-700/50 p-6 rounded-2xl border-dashed border-2 border-gray-600 min-h-[180px] flex flex-col justify-center items-center">
+            <h2 class="text-2xl font-bold mb-4 text-gray-200">
+                Available Blocks:
+            </h2>
+            <div id="blocks-container" class="flex flex-wrap justify-center items-center p-4 w-full">
+                <!-- Blocks will be rendered here -->
+            </div>
+            <div id="combined-result-display">
+                <!-- Combined result text will be rendered here -->
+            </div>
+        </section>
+
+        <!-- FEEDBACK AND EXAMPLE -->
+        <div id="feedback-display">
+            <!-- Feedback will be rendered here -->
+        </div>
+        <div id="example-display">
+            <!-- Example sentence and translation will be rendered here -->
+        </div>
+
+        <footer class="mt-8 flex justify-between items-center">
+            <button
+                id="reset-full-btn"
+                class="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-md transition duration-200 active:scale-95 text-sm"
+            >
+                <i data-lucide="rotate-ccw" class="w-4 h-4 mr-2"></i>
+                Full Reset
+            </button>
+            <button
+                id="clear-selection-btn"
+                class="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg shadow-md transition duration-200 active:scale-95 text-sm"
+            >
+                <i data-lucide="refresh-ccw" class="w-4 h-4 mr-2"></i>
+                Clear Selection
+            </button>
+            <button
+                id="next-block-btn"
+                class="flex items-center px-6 py-3 font-extrabold rounded-lg shadow-xl transition duration-300 active:scale-95 bg-gray-500 text-gray-700 cursor-not-allowed"
+                disabled
+            >
+                Next Block &rarr;
+            </button>
+        </footer>
+
+    </main>
+
+    <p class="mt-10 text-center text-sm text-gray-500 max-w-md">
+        Think disruptively! Contraction is efficiency. I'm DJ Assai!
+    </p>
+
+    <!-- Reset Modal HTML (Hidden by Default) -->
+    <div id="reset-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 items-center justify-center p-4">
+        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl max-w-sm w-full border border-red-700">
+          <div class="flex items-center mb-4">
+            <i data-lucide="refresh-ccw" class="w-6 h-6 text-red-400 mr-3"></i>
+            <h3 class="text-2xl font-bold text-white">Confirm Full Reset</h3>
+          </div>
+          <p id="modal-message" class="text-gray-300 mb-6">
+            Are you sure you want to **reset all progress**? Your current score (0) and all 0 completed challenges will be cleared.
+          </p>
+          <div class="flex justify-end space-x-4">
+            <button
+              id="cancel-reset-btn"
+              class="px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 transition"
+            >
+              Cancel
+            </button>
+            <button
+              id="confirm-reset-btn"
+              class="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition"
+            >
+              <i data-lucide="refresh-ccw" class="w-4 h-4 mr-1 inline-block"></i> Reset All
+            </button>
+          </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Load Lucide icons dynamically (required for vanilla HTML/JS)
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+
+        // --- Contraction Data ---
+        const contractionSets = [
+            { id: 1, blocks: [{ id: 'b1', text: 'I', group: 1, color: 'bg-red-500' }, { id: 'b2', text: 'am', group: 1, color: 'bg-blue-500' }], targetIds: ['b1', 'b2'], result: "I'm", hint: "The original disruptor! (Pronoun + To Be)", exampleSentence: "I'm ready to start the next challenge now.", portugueseTranslation: "Eu estou pronto para começar o próximo desafio agora." },
+            { id: 2, blocks: [{ id: 'b3', text: 'will', group: 2, color: 'bg-indigo-500' }, { id: 'b4', text: 'not', group: 2, color: 'bg-lime-500' }], targetIds: ['b3', 'b4'], result: "won't", hint: "The truly disruptive block! Completely irregular.", exampleSentence: "She won't be attending the meeting tomorrow.", portugueseTranslation: "Ela não irá participar da reunião amanhã." },
+            { id: 3, blocks: [{ id: 'b5', text: 'should', group: 3, color: 'bg-purple-500' }, { id: 'b6', text: 'have', group: 3, color: 'bg-orange-500' }], targetIds: ['b5', 'b6'], result: "should've", hint: "Modal verb + auxiliary 'have' (sounds like 'should of').", exampleSentence: "You should've called me when you got home.", portugueseTranslation: "Você deveria ter me ligado quando chegou em casa." },
+            { id: 4, blocks: [{ id: 'b7', text: 'Where', group: 4, color: 'bg-pink-500' }, { id: 'b8', text: 'is', group: 4, color: 'bg-cyan-500' }], targetIds: ['b7', 'b8'], result: "Where's", hint: "Contraction of a question word and 'to be' or 'to has'.", exampleSentence: "Where's the new file I asked you to save?", portugueseTranslation: "Onde está o novo arquivo que pedi para você salvar?" },
+            { id: 5, blocks: [{ id: 'b9', text: 'Let', group: 5, color: 'bg-teal-500' }, { id: 'b10', text: 'us', group: 5, color: 'bg-fuchsia-500' }], targetIds: ['b9', 'b10'], result: "Let's", hint: "The only contraction used for the imperative form ('Let us go').", exampleSentence: "Let's finish this project before the deadline.", portugueseTranslation: "Vamos terminar este projeto antes do prazo." },
+            { id: 6, blocks: [{ id: 'b11', text: 'are', group: 6, color: 'bg-amber-500' }, { id: 'b12', text: 'not', group: 6, color: 'bg-brown-500' }], targetIds: ['b11', 'b12'], result: "aren't", hint: "The negative form of the verb 'to be' (plural).", exampleSentence: "We aren't planning to go out tonight.", portugueseTranslation: "Nós não estamos planejando sair esta noite." },
+            { id: 7, blocks: [{ id: 'b13', text: 'can', group: 7, color: 'bg-emerald-500' }, { id: 'b14', text: 'not', group: 7, color: 'bg-rose-500' }], targetIds: ['b13', 'b14'], result: "can't", hint: "The negative form of the modal verb 'can'.", exampleSentence: "I can't believe how quickly time flies.", portugueseTranslation: "Eu não consigo acreditar como o tempo voa rápido." },
+            { id: 8, blocks: [{ id: 'b15', text: 'They', group: 8, color: 'bg-yellow-400' }, { id: 'b16', text: 'had', group: 8, color: 'bg-red-700' }], targetIds: ['b15', 'b16'], result: "They'd", hint: "Ambiguous: 'They had' (past perfect) or 'They would' (conditional).", exampleSentence: "They'd already left by the time we arrived.", portugueseTranslation: "Eles já tinham saído quando chegamos." },
+            { id: 9, blocks: [{ id: 'b17', text: 'could', group: 9, color: 'bg-cyan-600' }, { id: 'b18', text: 'not', group: 9, color: 'bg-fuchsia-700' }], targetIds: ['b17', 'b18'], result: "couldn't", hint: "Negative form of the modal verb 'could'.", exampleSentence: "We couldn't reach the top in the blizzard.", portugueseTranslation: "Nós não pudemos alcançar o topo na nevasca." },
+            { id: 10, blocks: [{ id: 'b19', text: 'They', group: 10, color: 'bg-green-600' }, { id: 'b20', text: 'will', group: 10, color: 'bg-yellow-600' }], targetIds: ['b19', 'b20'], result: "They'll", hint: "Contraction of 'They' and the future auxiliary 'will'.", exampleSentence: "I think they'll be here any minute now.", portugueseTranslation: "Eu acho que eles estarão aqui a qualquer momento agora." },
+            { id: 11, blocks: [{ id: 'b21', text: 'I', group: 11, color: 'bg-blue-600' }, { id: 'b22', text: 'have', group: 11, color: 'bg-purple-600' }], targetIds: ['b21', 'b22'], result: "I've", hint: "Contraction of the first-person pronoun and 'have'.", exampleSentence: "I've been working on this problem all morning.", portugueseTranslation: "Eu tenho trabalhado neste problema a manhã toda." },
+            { id: 12, blocks: [{ id: 'b23', text: 'might', group: 12, color: 'bg-pink-600' }, { id: 'b24', text: 'have', group: 12, color: 'bg-teal-600' }], targetIds: ['b23', 'b24'], result: "might've", hint: "A common modal perfect contraction (often confused with 'might of').", exampleSentence: "He might've missed the bus because of the traffic.", portugueseTranslation: "Ele pode ter perdido o ônibus por causa do trânsito." },
+            { id: 13, blocks: [{ id: 'b25', text: 'What', group: 13, color: 'bg-red-600' }, { id: 'b26', text: 'is', group: 13, color: 'bg-green-700' }], targetIds: ['b25', 'b26'], result: "What's", hint: "The most common Wh-word contraction. Can be 'is' or 'has'.", exampleSentence: "What's the best approach to solve this puzzle?", portugueseTranslation: "Qual é a melhor abordagem para resolver este quebra-cabeça?" },
+            { id: 14, blocks: [{ id: 'b27', text: 'going', group: 14, color: 'bg-gray-500' }, { id: 'b28', text: 'to', group: 14, color: 'bg-black' }], targetIds: ['b27', 'b28'], result: "gonna", hint: "A highly informal, disruptive block. (Gonna = going to).", exampleSentence: "I'm gonna tell you a secret, but you can't tell anyone.", portugueseTranslation: "Eu vou te contar um segredo, mas você não pode contar a ninguém." },
+            { id: 15, blocks: [{ id: 'b29', text: 'must', group: 15, color: 'bg-blue-400' }, { id: 'b30', text: 'have', group: 15, color: 'bg-orange-400' }], targetIds: ['b29', 'b30'], result: "must've", hint: "Modal verb of obligation/speculation + 'have'.", exampleSentence: "You must've been exhausted after that long flight.", portugueseTranslation: "Você deve ter estado exausto após aquele voo longo." },
+            { id: 16, blocks: [{ id: 'b31', text: 'did', group: 16, color: 'bg-indigo-400' }, { id: 'b32', text: 'not', group: 16, color: 'bg-pink-400' }], targetIds: ['b31', 'b32'], result: "didn't", hint: "Negative form of the auxiliary verb 'do' (past tense).", exampleSentence: "She didn't show up for her shift this morning.", portugueseTranslation: "Ela não apareceu para o turno dela esta manhã." },
+            { id: 17, blocks: [{ id: 'b33', text: 'you', group: 17, color: 'bg-teal-400' }, { id: 'b34', text: 'had', group: 17, color: 'bg-lime-400' }], targetIds: ['b33', 'b34'], result: "You'd", hint: "Ambiguous: 'You had' or 'You would'.", exampleSentence: "You'd better hurry up or you'll miss the train.", portugueseTranslation: "É melhor você se apressar ou você perderá o trem." },
+            { id: 18, blocks: [{ id: 'b35', text: 'was', group: 18, color: 'bg-rose-400' }, { id: 'b36', text: 'not', group: 18, color: 'bg-purple-400' }], targetIds: ['b35', 'b36'], result: "wasn't", hint: "Negative form of 'to be' (past tense, singular).", exampleSentence: "The weather wasn't nearly as bad as predicted.", portugueseTranslation: "O tempo não estava nem de perto tão ruim quanto o previsto." },
+            { id: 19, blocks: [{ id: 'b37', text: 'who', group: 19, color: 'bg-yellow-800' }, { id: 'b38', text: 'had', group: 19, color: 'bg-red-700' }], targetIds: ['b37', 'b38'], result: "Who'd", hint: "Ambiguous: 'Who had' or 'Who would'.", exampleSentence: "Who'd have thought he was capable of that?", portugueseTranslation: "Quem teria pensado que ele era capaz disso?" },
+            { id: 20, blocks: [{ id: 'b39', text: 'who', group: 20, color: 'bg-blue-800' }, { id: 'b40', text: 'is', group: 20, color: 'bg-pink-800' }], targetIds: ['b39', 'b40'], result: "Who's", hint: "Question word + 'is' or 'has'. (Not possessive 'whose').", exampleSentence: "Who's responsible for managing the budget this quarter?", portugueseTranslation: "Quem é o responsável por gerenciar o orçamento neste trimestre?" },
+            { id: 21, blocks: [{ id: 'b41', text: 'we', group: 21, color: 'bg-red-800' }, { id: 'b42', text: 'are', group: 21, color: 'bg-cyan-800' }], targetIds: ['b41', 'b42'], result: "We're", hint: "Contraction of the pronoun 'we' and 'are'.", exampleSentence: "We're going to see the new movie this weekend.", portugueseTranslation: "Nós vamos ver o novo filme neste fim de semana." },
+            { id: 22, blocks: [{ id: 'b43', text: 'there', group: 22, color: 'bg-gray-800' }, { id: 'b44', text: 'are', group: 22, color: 'bg-white/80' }], targetIds: ['b43', 'b44'], result: "There're", hint: "Contraction of 'there' and 'are'. (Less common in speech).", exampleSentence: "There're several factors influencing the decision.", portugueseTranslation: "Existem vários fatores influenciando a decisão." },
+            { id: 23, blocks: [{ id: 'b45', text: 'we', group: 23, color: 'bg-indigo-700' }, { id: 'b46', text: 'have', group: 23, color: 'bg-green-700' }], targetIds: ['b45', 'b46'], result: "We've", hint: "Contraction of the pronoun 'we' and 'have'.", exampleSentence: "We've known each other since high school.", portugueseTranslation: "Nós nos conhecemos desde o ensino médio." },
+            { id: 24, blocks: [{ id: 'b47', text: 'do', group: 24, color: 'bg-fuchsia-600' }, { id: 'b48', text: 'not', group: 24, color: 'bg-yellow-600' }], targetIds: ['b47', 'b48'], result: "don't", hint: "The most common negative auxiliary verb contraction.", exampleSentence: "Don't forget to lock the door when you leave.", portugueseTranslation: "Não se esqueça de trancar a porta quando sair." },
+            { id: 25, blocks: [{ id: 'b49', text: 'does', group: 25, color: 'bg-teal-500' }, { id: 'b50', text: 'not', group: 25, color: 'bg-cyan-500' }], targetIds: ['b49', 'b50'], result: "doesn't", hint: "Negative auxiliary 'do' in third-person singular.", exampleSentence: "He doesn't usually eat lunch this late in the day.", portugueseTranslation: "Ele geralmente não almoça tão tarde no dia." },
+            { id: 26, blocks: [{ id: 'b51', text: 'had', group: 26, color: 'bg-amber-600' }, { id: 'b52', text: 'not', group: 26, color: 'bg-brown-600' }], targetIds: ['b51', 'b52'], result: "hadn't", hint: "Negative form of the auxiliary verb 'had' (past perfect).", exampleSentence: "They hadn't seen the film before last week.", portugueseTranslation: "Eles não tinham visto o filme antes da semana passada." },
+            { id: 27, blocks: [{ id: 'b53', text: 'is', group: 27, color: 'bg-emerald-600' }, { id: 'b54', text: 'not', group: 27, color: 'bg-red-600' }], targetIds: ['b53', 'b54'], result: "isn't", hint: "Negative form of the verb 'to be' (singular).", exampleSentence: "It isn't cold enough outside to snow yet.", portugueseTranslation: "Não está frio o suficiente lá fora para nevar ainda." },
+            { id: 28, blocks: [{ id: 'b55', text: 'They', group: 28, color: 'bg-purple-800' }, { id: 'b56', text: 'are', group: 28, color: 'bg-orange-800' }], targetIds: ['b55', 'b56'], result: "They're", hint: "Contraction of 'They' and 'are'. (Homophone of 'their').", exampleSentence: "They're moving to a new apartment next month.", portugueseTranslation: "Eles estão se mudando para um novo apartamento no próximo mês." },
+            { id: 29, blocks: [{ id: 'b57', text: 'what', group: 29, color: 'bg-pink-700' }, { id: 'b58', text: 'have', group: 29, color: 'bg-teal-700' }], targetIds: ['b57', 'b58'], result: "What've", hint: "Contraction of 'What' and 'have' (common in casual speech).", exampleSentence: "What've you been doing all this time?", portugueseTranslation: "O que você tem feito durante todo esse tempo?" },
+            { id: 30, blocks: [{ id: 'b59', text: 'there', group: 30, color: 'bg-lime-800' }, { id: 'b60', text: 'is', group: 30, color: 'bg-cyan-800' }], targetIds: ['b59', 'b60'], result: "There's", hint: "Contraction of 'There' and 'is' or 'has'. (Very common).", exampleSentence: "There's a good chance of rain this afternoon.", portugueseTranslation: "Há uma boa chance de chuva esta tarde." },
+            { id: 31, blocks: [{ id: 'b61', text: 'She', group: 31, color: 'bg-purple-500' }, { id: 'b62', text: 'is', group: 31, color: 'bg-red-400' }], targetIds: ['b61', 'b62'], result: "She's", hint: "Contraction of 'She' and 'is' or 'has'.", exampleSentence: "She's been waiting for the bus for ten minutes.", portugueseTranslation: "Ela está esperando o ônibus há dez minutos." },
+            { id: 32, blocks: [{ id: 'b63', text: 'It', group: 32, color: 'bg-green-500' }, { id: 'b64', text: 'is', group: 32, color: 'bg-blue-400' }], targetIds: ['b63', 'b64'], result: "It's", hint: "Contraction of 'It' and 'is' or 'has'. (Avoid confusion with possessive 'its').", exampleSentence: "It's a beautiful day for learning English.", portugueseTranslation: "É um lindo dia para aprender inglês." },
+            { id: 33, blocks: [{ id: 'b65', text: 'He', group: 33, color: 'bg-yellow-700' }, { id: 'b66', text: 'would', group: 33, color: 'bg-orange-500' }], targetIds: ['b65', 'b66'], result: "He'd", hint: "Ambiguous: 'He had' or 'He would'. This time, think 'would'.", exampleSentence: "He'd prefer to start working earlier in the morning.", portugueseTranslation: "Ele preferiria começar a trabalhar mais cedo pela manhã." },
+            { id: 34, blocks: [{ id: 'b67', text: 'We', group: 34, color: 'bg-indigo-600' }, { id: 'b68', text: 'would', group: 34, color: 'bg-teal-500' }], targetIds: ['b67', 'b68'], result: "We'd", hint: "Ambiguous: 'We had' or 'We would'. This time, think 'would'.", exampleSentence: "We'd definitely go if the tickets were cheaper.", portugueseTranslation: "Nós definitivamente iríamos se os ingressos fossem mais baratos." },
+            { id: 35, blocks: [{ id: 'b69', text: 'They', group: 35, color: 'bg-pink-600' }, { id: 'b70', text: 'would', group: 35, color: 'bg-cyan-500' }], targetIds: ['b69', 'b70'], result: "They'd", hint: "Ambiguous: 'They had' or 'They would'. This time, think 'would'.", exampleSentence: "They'd rather drive than take the train.", portugueseTranslation: "Eles prefeririam dirigir a pegar o trem." },
+            { id: 36, blocks: [{ id: 'b71', text: 'Who', group: 36, color: 'bg-rose-700' }, { id: 'b72', text: 'would', group: 36, color: 'bg-lime-500' }], targetIds: ['b71', 'b72'], result: "Who'd", hint: "Ambiguous: 'Who had' or 'Who would'. This time, think 'would'.", exampleSentence: "Who'd you recommend for this specialized job?", portugueseTranslation: "Quem você recomendaria para este trabalho especializado?" },
+            { id: 37, blocks: [{ id: 'b73', text: 'You', group: 37, color: 'bg-fuchsia-600' }, { id: 'b74', text: 'are', group: 37, color: 'bg-amber-500' }], targetIds: ['b73', 'b74'], result: "You're", hint: "Contraction of 'You' and 'are'. (Avoid confusion with possessive 'your').", exampleSentence: "You're going to love the surprise party tonight.", portugueseTranslation: "Você vai amar a festa surpresa esta noite." },
+            { id: 38, blocks: [{ id: 'b75', text: 'Where', group: 38, color: 'bg-gray-600' }, { id: 'b76', text: 'had', group: 38, color: 'bg-black' }], targetIds: ['b75', 'b76'], result: "Where'd", hint: "Contraction of 'Where' and 'did' or 'had'. This time, think 'had'.", exampleSentence: "Where'd she hidden the key before leaving?", portugueseTranslation: "Onde ela tinha escondido a chave antes de sair?" },
+            { id: 39, blocks: [{ id: 'b77', text: 'Who', group: 39, color: 'bg-emerald-600' }, { id: 'b78', text: 'have', group: 39, color: 'bg-purple-800' }], targetIds: ['b77', 'b78'], result: "Who've", hint: "Contraction of 'Who' and 'have'. Used with the present perfect tense.", exampleSentence: "Who've they hired to fill the vacant position?", portugueseTranslation: "Quem eles contrataram para preencher a vaga em aberto?" },
+            { id: 40, blocks: [{ id: 'b79', text: 'need', group: 40, color: 'bg-blue-700' }, { id: 'b80', text: 'not', group: 40, color: 'bg-orange-700' }], targetIds: ['b79', 'b80'], result: "needn't", hint: "Modal verb 'need' + 'not'. (Often replaced by 'don't need to').", exampleSentence: "You needn't bring a dish to the potluck; we have plenty.", portugueseTranslation: "Você não precisa trazer um prato para o potluck; nós temos bastante." },
+        ];
+        
+        // --- State Management ---
+        let state = {
+            currentContractionIndex: 0,
+            selectedBlockIds: [],
+            feedback: null, // { type: 'success' | 'error', message: string }
+            score: 0,
+            completedContractionIds: [],
+            showResetModal: false,
+            contractionAudioLoading: false,
+            exampleAudioLoading: false,
+            audioError: null,
+        };
+
+        const totalContractions = contractionSets.length;
+
+        // --- TTS Utility Functions (MUST BE INSIDE FILE) ---
+
+        const writeString = (view, offset, string) => {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        };
+
+        const base64ToArrayBuffer = (base64) => {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        };
+
+        const pcmToWav = (pcm16, sampleRate) => {
+            const numChannels = 1;
+            const bitsPerSample = 16;
+            const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+            const blockAlign = numChannels * (bitsPerSample / 8);
+            const dataSize = pcm16.length * 2; // 16-bit PCM (2 bytes per sample)
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+            
+            // RIFF header
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(view, 8, 'WAVE');
+            
+            // FMT chunk
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true); // chunkSize
+            view.setUint16(20, 1, true); // audioFormat (1 for PCM)
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bitsPerSample, true);
+
+            // DATA chunk
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            // Write PCM data
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++) {
+                view.setInt16(offset, pcm16[i], true);
+                offset += 2;
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        };
+
+        // Function to fetch and play audio via TTS API (Generic)
+        const fetchAndPlayAudio = async (text, isExample) => {
+            const currentSet = contractionSets[state.currentContractionIndex];
+            const setLoadingState = (isLoading) => {
+                if (isExample) {
+                    state.exampleAudioLoading = isLoading;
+                } else {
+                    state.contractionAudioLoading = isLoading;
+                }
+                renderFeedbackAndExample(); // Re-render to update button state
+            };
+            
+            setLoadingState(true);
+            state.audioError = null;
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: text.includes("'") ? `Say clearly: ${text}` : text }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        // Use different voices for contrast
+                        voiceConfig: { prebuiltVoiceConfig: { voiceName: isExample ? "Kore" : "Fenrir" } } 
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            let response;
+            let retries = 0;
+            const maxRetries = 3;
+
+            while (retries < maxRetries) {
+                try {
+                    response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    break; 
+                } catch (error) {
+                    retries++;
+                    if (retries < maxRetries) {
+                        const delay = Math.pow(2, retries) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    } else {
+                        console.error("TTS API failed after multiple retries:", error);
+                        state.audioError = "Error fetching audio. Please try again.";
+                        setLoadingState(false);
+                        renderFeedbackAndExample();
+                        return;
+                    }
+                }
+            }
+
+            try {
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                    const rateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 16000; 
+
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    
+                    const audio = new Audio(audioUrl);
+                    audio.play().catch(e => console.error("Audio playback failed:", e));
+                    audio.onended = () => {
+                        URL.revokeObjectURL(audioUrl);
+                        setLoadingState(false);
+                        renderFeedbackAndExample();
+                    };
+                } else {
+                    throw new Error("Invalid audio response format or missing data.");
+                }
+            } catch (e) {
+                console.error("Error processing TTS response:", e);
+                state.audioError = "Error playing audio. Invalid data received.";
+                setLoadingState(false);
+                renderFeedbackAndExample();
+            }
+        };
+
+        // --- Core Logic Functions ---
+
+        const resetChallenge = () => {
+            state.selectedBlockIds = [];
+            state.feedback = null;
+            state.audioError = null;
+            renderApp();
+        };
+
+        const handleFullReset = () => {
+            state.score = 0;
+            state.completedContractionIds = [];
+            state.currentContractionIndex = 0;
+            state.showResetModal = false;
+            resetChallenge();
+        };
+
+        const nextChallenge = () => {
+            if (state.feedback?.type !== 'success') return; // Only allow moving on success
+            resetChallenge();
+            
+            const currentIndex = state.currentContractionIndex;
+            let nextIndex = (currentIndex + 1) % totalContractions;
+            
+            let attempts = 0;
+            // Loop until an uncompleted challenge is found or all challenges are checked
+            while (state.completedContractionIds.includes(contractionSets[nextIndex].id) && attempts < totalContractions) {
+                nextIndex = (nextIndex + 1) % totalContractions;
+                attempts++;
+            }
+
+            state.currentContractionIndex = nextIndex;
+            renderApp();
+        };
+
+        const checkCombination = (ids) => {
+            const currentSet = contractionSets[state.currentContractionIndex];
+            // Correct order check (must match targetIds exactly)
+            const isCorrectOrder = ids.length === currentSet.targetIds.length && ids.every((id, index) => id === currentSet.targetIds[index]);
+
+            if (isCorrectOrder) {
+                state.feedback = { type: 'success', message: `Success! The final block is: ${currentSet.result}` };
+                state.score += 1;
+                
+                // Mark as completed
+                if (!state.completedContractionIds.includes(currentSet.id)) {
+                    state.completedContractionIds.push(currentSet.id);
+                }
+                
+                renderApp();
+
+            } else {
+                state.feedback = { type: 'error', message: 'Try again! The order or combination is incorrect.' };
+                renderApp();
+
+                setTimeout(() => {
+                    state.feedback = null;
+                    state.selectedBlockIds = [];
+                    renderApp();
+                }, 1500);
+            }
+        };
+
+        const handleBlockClick = (blockId) => {
+            if (state.feedback) return;
+
+            const currentSet = contractionSets[state.currentContractionIndex];
+            
+            const isSelected = state.selectedBlockIds.includes(blockId);
+            
+            if (isSelected) {
+                state.selectedBlockIds = state.selectedBlockIds.filter((id) => id !== blockId);
+            } else {
+                state.selectedBlockIds.push(blockId);
+            }
+
+            if (state.selectedBlockIds.length === currentSet.blocks.length) {
+                checkCombination(state.selectedBlockIds);
+            } else {
+                renderApp();
+            }
+        };
+
+
+        // --- Rendering Functions ---
+
+        const renderProgress = () => {
+            const tracker = document.getElementById('progress-tracker');
+            const progressPercentage = (state.completedContractionIds.length / totalContractions) * 100;
+
+            tracker.innerHTML = `
+                <div class="flex justify-between items-center mb-3">
+                    <div class="text-xl font-semibold text-yellow-400 flex items-center">
+                        <i data-lucide="trophy" class="w-6 h-6 mr-2"></i>
+                        Current Score: ${state.score}
+                    </div>
+                    <div class="text-sm font-medium text-gray-300 flex items-center">
+                        <i data-lucide="list-checks" class="w-4 h-4 mr-1"></i>
+                        Completed: ${state.completedContractionIds.length} / ${totalContractions}
+                    </div>
+                </div>
+                
+                <div class="w-full bg-gray-700 rounded-full h-2.5">
+                    <div 
+                        class="h-2.5 rounded-full bg-gradient-to-r from-green-400 to-teal-500 transition-all duration-500 ease-out" 
+                        style="width: ${progressPercentage}%;"
+                    ></div>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        };
+
+        const renderBlocks = () => {
+            const currentSet = contractionSets[state.currentContractionIndex];
+            const container = document.getElementById('blocks-container');
+            const combinedDisplay = document.getElementById('combined-result-display');
+            const hintDisplay = document.getElementById('hint-display');
+            
+            // Render Hint
+            hintDisplay.innerHTML = `*Hint (Challenge ${state.currentContractionIndex + 1} of ${totalContractions}): ${currentSet.hint}`;
+
+            // Render Blocks
+            container.innerHTML = currentSet.blocks.map(block => {
+                const isSelected = state.selectedBlockIds.includes(block.id);
+                let dynamicClasses = block.color;
+                let baseClasses = `p-4 m-2 text-xl font-extrabold text-white transition-all duration-300 transform cursor-pointer select-none rounded-lg shadow-lg hover:shadow-2xl hover:scale-105 active:scale-95 flex items-center justify-center block-card`;
+
+                if (state.feedback?.type === 'success' && isSelected) {
+                    dynamicClasses = `bg-green-600/90 shadow-green-900/50 ring-4 ring-green-400`;
+                } else if (state.feedback?.type === 'error' && isSelected) {
+                    dynamicClasses = `bg-red-600/90 shadow-red-900/50 ring-4 ring-red-400 shake-animation`;
+                } else if (isSelected) {
+                    dynamicClasses = `${block.color} ring-4 ring-offset-2 ring-white/70 shadow-inner`;
+                }
+
+                return `
+                    <div 
+                        class="${baseClasses} ${dynamicClasses}"
+                        data-block-id="${block.id}"
+                        onclick="handleBlockClick('${block.id}')"
+                    >
+                        ${block.text}
+                    </div>
+                `;
+            }).join('');
+
+            // Render Combined Input
+            if (state.selectedBlockIds.length > 0 && state.feedback?.type !== 'success') {
+                const combinedText = state.selectedBlockIds
+                    .map(id => currentSet.blocks.find(b => b.id === id)?.text || '')
+                    .join(' + ');
+                combinedDisplay.innerHTML = `
+                    <div class="mt-4 p-3 bg-white/10 rounded-xl font-mono text-lg text-yellow-300">
+                        You combined: <span class="font-bold">${combinedText}</span>
+                    </div>
+                `;
+            } else {
+                combinedDisplay.innerHTML = '';
+            }
+        };
+
+        const renderFeedbackAndExample = () => {
+            const currentSet = contractionSets[state.currentContractionIndex];
+            const feedbackContainer = document.getElementById('feedback-display');
+            const exampleContainer = document.getElementById('example-display');
+
+            // --- Feedback Display ---
+            if (state.feedback) {
+                const iconHtml = state.feedback.type === 'success' 
+                    ? '<i data-lucide="check" class="w-8 h-8 mr-3"></i>' 
+                    : '<i data-lucide="x" class="w-8 h-8 mr-3"></i>';
+                const bgClass = state.feedback.type === 'success' ? 'bg-green-600' : 'bg-red-600';
+                
+                let listenButton = '';
+                if (state.feedback.type === 'success') {
+                    listenButton = `
+                        <button
+                            id="listen-contraction-btn"
+                            disabled="${state.contractionAudioLoading}"
+                            class="flex items-center mt-3 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-wait"
+                        >
+                            ${state.contractionAudioLoading 
+                                ? '<i data-lucide="loader" class="w-4 h-4 mr-2 animate-spin"></i> Loading Contraction...'
+                                : `<i data-lucide="volume-2" class="w-4 h-4 mr-2"></i> Listen to Contraction: '${currentSet.result}'`
+                            }
+                        </button>
+                    `;
+                }
+
+                feedbackContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center p-4 mt-6 text-white font-bold rounded-xl shadow-xl ${bgClass}">
+                        <div class='flex items-center text-2xl mb-2'>
+                            ${iconHtml}
+                            ${state.feedback.message}
+                        </div>
+                        ${listenButton}
+                    </div>
+                `;
+
+                // Attach listener for contraction button
+                if (state.feedback.type === 'success') {
+                    const listenBtn = document.getElementById('listen-contraction-btn');
+                    if (listenBtn) {
+                        listenBtn.onclick = () => fetchAndPlayAudio(currentSet.result, false);
+                    }
+                }
+            } else {
+                feedbackContainer.innerHTML = '';
+            }
+
+
+            // --- Example Display ---
+            if (state.feedback?.type === 'success') {
+                const listenButton = `
+                    <button
+                        id="listen-example-btn"
+                        disabled="${state.exampleAudioLoading}"
+                        class="flex items-center mt-3 px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-wait"
+                    >
+                        ${state.exampleAudioLoading 
+                            ? '<i data-lucide="loader" class="w-4 h-4 mr-2 animate-spin"></i> Loading Sentence...'
+                            : `<i data-lucide="volume-2" class="w-4 h-4 mr-2"></i> Listen to Sentence`
+                        }
+                    </button>
+                `;
+
+                exampleContainer.innerHTML = `
+                    <div class="mt-8 p-6 bg-gray-700 rounded-2xl shadow-inner border border-gray-600">
+                        <h3 class="text-xl font-bold text-yellow-300 mb-3 flex items-center">
+                            <i data-lucide="message-square" class="w-5 h-5 mr-2"></i>
+                            Contraction in Practice
+                        </h3>
+                        
+                        <!-- English Example -->
+                        <p class="text-lg text-gray-200 font-semibold italic">
+                            ${currentSet.exampleSentence}
+                        </p>
+
+                        ${listenButton}
+                        
+                        <!-- Portuguese Translation -->
+                        <div class="mt-4 p-3 bg-indigo-900/50 border-l-4 border-indigo-400 rounded-lg">
+                            <p class="text-sm font-light text-indigo-200">
+                                <span class='font-bold text-indigo-300'>Português:</span>
+                            </p>
+                            <p class="text-lg font-mono text-white">
+                                ${currentSet.portugueseTranslation}
+                            </p>
+                        </div>
+                        ${state.audioError ? `<p class="text-sm mt-2 text-red-300">${state.audioError}</p>` : ''}
+                    </div>
+                `;
+                
+                // Attach listener for example button
+                const listenBtn = document.getElementById('listen-example-btn');
+                if (listenBtn) {
+                    listenBtn.onclick = () => fetchAndPlayAudio(currentSet.exampleSentence, true);
+                }
+
+            } else {
+                exampleContainer.innerHTML = '';
+            }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        };
+
+        const renderControls = () => {
+            const nextBtn = document.getElementById('next-block-btn');
+            
+            // Next button logic
+            const isSuccess = state.feedback?.type === 'success';
+            nextBtn.disabled = !isSuccess;
+            nextBtn.classList.toggle('bg-gray-500', !isSuccess);
+            nextBtn.classList.toggle('text-gray-700', !isSuccess);
+            nextBtn.classList.toggle('cursor-not-allowed', !isSuccess);
+            nextBtn.classList.toggle('bg-yellow-500', isSuccess);
+            nextBtn.classList.toggle('hover:bg-yellow-600', isSuccess);
+            nextBtn.classList.toggle('text-gray-900', isSuccess);
+
+            nextBtn.onclick = nextChallenge;
+        };
+
+        const renderModal = () => {
+            const modal = document.getElementById('reset-modal');
+            const modalMessage = document.getElementById('modal-message');
+
+            if (state.showResetModal) {
+                modalMessage.innerHTML = `Are you sure you want to **reset all progress**? Your current score (${state.score}) and all ${state.completedContractionIds.length} completed challenges will be cleared.`;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }
+        };
+
+        const renderApp = () => {
+            renderProgress();
+            renderBlocks();
+            renderFeedbackAndExample();
+            renderControls();
+            renderModal();
+        };
+
+        // --- Initialization and Event Listeners ---
+
+        window.onload = () => {
+            // Initial render
+            renderApp();
+
+            // Set up static button listeners
+            document.getElementById('clear-selection-btn').onclick = resetChallenge;
+            
+            // Modal controls
+            document.getElementById('reset-full-btn').onclick = () => {
+                state.showResetModal = true;
+                renderModal();
+            };
+            document.getElementById('cancel-reset-btn').onclick = () => {
+                state.showResetModal = false;
+                renderModal();
+            };
+            document.getElementById('confirm-reset-btn').onclick = handleFullReset;
+        };
+    </script>
+</body>
+</html>
